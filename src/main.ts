@@ -15,6 +15,8 @@ async function bootstrap() {
   console.log('� User API endpoints: http://localhost:3000/api/users');
   console.log('🐱 Cat API endpoints: http://localhost:3000/api/cats');
   console.log('📊 Cat statistics: http://localhost:3000/api/cats/statistics');
+  console.log('📖 Blog API endpoints: http://localhost:3000/api/blogs');
+  console.log('📈 Blog statistics: http://localhost:3000/api/blogs/statistics');
   console.log('📖 Check NESTJS_LEARNING_GUIDE.md for complete tutorial!');
 }
 bootstrap();
