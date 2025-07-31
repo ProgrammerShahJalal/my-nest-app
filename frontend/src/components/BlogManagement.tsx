@@ -75,27 +75,43 @@ const BlogManagement: React.FC = () => {
     fetchData();
   }, [fetchData]);
 
-  const handleSearch = async () => {
-    if (!searchQuery.trim()) {
-      fetchData();
-      return;
-    }
+  const clearSearch = () => {
+    setSearchQuery('');
+    fetchData();
+  };
 
-    try {
-      setLoading(true);
-      const searchResults = await blogApi.search(searchQuery);
-      setBlogs(searchResults);
-      setError(null);
-      showToast(`Found ${searchResults.length} blog(s) matching "${searchQuery}"`, 'info');
-    } catch (err) {
-      const errorMessage = 'Search failed';
-      setError(errorMessage);
-      showToast(errorMessage, 'error');
-      console.error('Search error:', err);
-    } finally {
-      setLoading(false);
+  const handleFilterChange = (newFilter: 'all' | 'published' | 'draft') => {
+    setFilter(newFilter);
+    // Clear search when filter changes
+    if (searchQuery.trim()) {
+      setSearchQuery('');
     }
   };
+
+  // Add real-time search with debouncing
+  useEffect(() => {
+    const timeoutId = setTimeout(async () => {
+      if (searchQuery.trim()) {
+        try {
+          setLoading(true);
+          const searchResults = await blogApi.search(searchQuery.trim());
+          setBlogs(searchResults);
+          setError(null);
+        } catch (err) {
+          const errorMessage = 'Search failed';
+          setError(errorMessage);
+          console.error('Search error:', err);
+        } finally {
+          setLoading(false);
+        }
+      } else {
+        // If search is empty, reload data based on current filter
+        fetchData();
+      }
+    }, 500); // 500ms delay
+
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery, fetchData]); // Include fetchData dependency
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -279,27 +295,34 @@ const BlogManagement: React.FC = () => {
       {/* Search and Filters */}
       <div className="flex flex-col lg:flex-row gap-4 items-center">
         <div className="flex flex-1 gap-2 w-full lg:w-auto min-w-0">
-          <input
-            type="text"
-            placeholder="Search blogs..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-            className="flex-1 px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-primary focus:outline-none transition-colors"
-          />
-          <button 
-            onClick={handleSearch} 
-            disabled={loading}
-            className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-50 transition-colors"
-          >
-            Search
-          </button>
+          <div className="relative flex-1">
+            <input
+              type="text"
+              placeholder="Search blogs (real-time)..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full px-4 py-2 pl-10 border-2 border-gray-200 rounded-lg focus:border-primary focus:outline-none transition-colors"
+            />
+            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+              🔍
+            </div>
+          </div>
+          {searchQuery && (
+            <button 
+              onClick={clearSearch} 
+              disabled={loading}
+              className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 disabled:opacity-50 transition-colors"
+              title="Clear search"
+            >
+              ✖
+            </button>
+          )}
         </div>
         
         <div className="w-full lg:w-auto">
           <select 
             value={filter} 
-            onChange={(e) => setFilter(e.target.value as 'all' | 'published' | 'draft')}
+            onChange={(e) => handleFilterChange(e.target.value as 'all' | 'published' | 'draft')}
             disabled={loading}
             className="w-full lg:w-auto px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-primary focus:outline-none bg-white cursor-pointer transition-colors"
           >
@@ -456,10 +479,26 @@ const BlogManagement: React.FC = () => {
 
       {/* Blog List */}
       <div className="space-y-6">
-        <h3 className="text-2xl font-semibold text-gray-800">Blogs ({blogs.length})</h3>
+        <div className="flex justify-between items-center">
+          <h3 className="text-2xl font-semibold text-gray-800">
+            {searchQuery ? `Search Results (${blogs.length})` : `Blogs (${blogs.length})`}
+          </h3>
+          {searchQuery && (
+            <div className="text-sm text-gray-600 bg-blue-50 px-3 py-2 rounded-lg">
+              🔍 Searching for: "<span className="font-medium text-blue-800">{searchQuery}</span>"
+            </div>
+          )}
+        </div>
         {blogs.length === 0 ? (
           <div className="text-center py-12 text-gray-500">
-            <p className="text-lg">No blogs found.</p>
+            {searchQuery ? (
+              <div>
+                <p className="text-lg mb-2">No blogs found matching your search.</p>
+                <p className="text-sm">Try different keywords or clear the search to see all blogs.</p>
+              </div>
+            ) : (
+              <p className="text-lg">No blogs found.</p>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
