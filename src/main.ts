@@ -12,7 +12,9 @@ async function bootstrap() {
   
   await app.listen(3000);
   console.log('🚀 Application is running on: http://localhost:3000');
-  console.log('📚 API endpoints available at: http://localhost:3000/api/users');
+  console.log('� User API endpoints: http://localhost:3000/api/users');
+  console.log('🐱 Cat API endpoints: http://localhost:3000/api/cats');
+  console.log('📊 Cat statistics: http://localhost:3000/api/cats/statistics');
   console.log('📖 Check NESTJS_LEARNING_GUIDE.md for complete tutorial!');
 }
 bootstrap();
