@@ -65,3 +65,48 @@ export interface CatStatistics {
   averageAge: number;
   averageWeight: number;
 }
+
+// Blog types
+export interface Blog {
+  id: number;
+  title: string;
+  content: string;
+  author: string;
+  category: string;
+  tags: string[];
+  isPublished: boolean;
+  publishedAt?: string;
+  readTime: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateBlogDto {
+  title: string;
+  content: string;
+  author: string;
+  category: string;
+  tags?: string[];
+  isPublished?: boolean;
+  readTime?: number;
+}
+
+export interface UpdateBlogDto {
+  title?: string;
+  content?: string;
+  author?: string;
+  category?: string;
+  tags?: string[];
+  isPublished?: boolean;
+  readTime?: number;
+}
+
+export interface BlogStatistics {
+  totalBlogs: number;
+  publishedBlogs: number;
+  draftBlogs: number;
+  categories: string[];
+  totalAuthors: number;
+  totalUniqueTags: number;
+  averageReadTime: number;
+}
